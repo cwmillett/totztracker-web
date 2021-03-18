@@ -2,36 +2,99 @@
   <meta charset="utf-8">
   <title>Firebase Meetup</title>
   <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/4.0.0/firebaseui.css" />
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Roboto:300,400,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Roboto:300,400,700&display=swap"
+    rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body>
-<div id="app">
- 
-  <!-- <img src="https://firebasestorage.googleapis.com/v0/b/fir-images-a61c9.appspot.com/o/firestore.png?alt=media&token=56d039dc-4a6c-477b-a153-a4bb8234646f" /> -->
-  <!-- <img src="https://firebasestorage.googleapis.com/v0/b/fir-images-a61c9.appspot.com/o/hosting.png?alt=media&token=57c8adb6-08c4-43f7-9395-4c299896a36c" /> -->
-  <img src="https://firebasestorage.googleapis.com/v0/b/fir-images-a61c9.appspot.com/o/codelab.png?alt=media&token=f45f808c-ce40-4b34-944c-8d8fac00e13d" />
+  <div id="app">
 
- <section id="event-details-container">
-      <h1>Firebase Meetup</h1>
+    <section id="header">
+      <h1 id="app-title">TotzTracker</h1>
 
-      <p><i class="material-icons">calendar_today</i> October 30</p>
-      <p><i class="material-icons">location_city</i> San Francisco</p>
-  </section>
+      <!-- ADD THE LOGIN/LOGOUT BUTTON HERE -->
+      <button id="btnLogin">Login</button>
 
-  <hr>
+      <!-- Add New Baby -->
+      <button type="button" id="btnAddBaby">
+        <i class="material-icons">person_add</i>
+        <span>Add Baby</span>
+      </button>
 
-  <section id="firebaseui-auth-container"></section>
+      <!-- Current Baby -->
+      <div id="current-baby-container">
+      </div>
+      <!--#current-baby-container-->
+    </section>
+    <!--#header-->
 
-  <section id="description-container">
-      <h2>What we'll be doing</h2>
-      <p>Join us for a day full of Firebase Workshops and Pizza!</p>
-  </section>
+    <div id="main">
+      <section id="date-and-location">
+        <p><i class="material-icons">calendar_today</i> March 17</p>
+        <p><i class="material-icons">location_city</i> Atlanta</p>
+      </section>
+      <!--#event-details-container-->
 
-  <section id="guestbook-container">
-  </section>
+      <hr>
 
-</div>
+      <section id="firebaseui-auth-container"></section>
+
+      <section id="logged-in-content">
+        <section id="add-baby-container">
+          <div id="new-user-baby-container">
+            <p>It looks like you don't have any totz. Add one to get started.</p>
+          </div>
+          <!--#new-user-baby-container-->
+
+          <h2>New Baby</h2>
+
+          <form id="add-baby">
+            <label>First Name: </label>
+            <input type="text" id="first_name">
+            <br/>
+
+            <label>Last Name: </label>
+            <input type="text" id="last_name">
+            <br/>
+
+            <label>Birth Date: </label>
+            <input type="text" id="birth_date">
+            <br/>
+
+            <label>Gender: </label>
+            <span>Boy</span>
+            <input type="radio" name="gender" value="1" checked="true">
+            <span> Girl</span>
+            <input type="radio" name="gender" value="0">
+            <br/>
+
+            <button type="submit">
+              <i class="material-icons">save</i>
+              <span>Save</span>
+            </button>
+          </form>
+        </section>
+        <!--#add-baby-container -->
+
+        <section id="current-activity-container">
+        </section>
+
+        <section id="recent-activity-container">
+          <table>
+            <tr>
+              <th>Date</th>
+              <th>Activity</th>
+              <th>Duration</th>
+            </tr>
+          </table>
+        </section>
+        <!--#recent-activity-->
+      </section>
+      <!--#logged-in-content-->
+    </div>
+    <!--#main-->
+  </div>
+  <!--#app-->
 </body>
