@@ -1,16 +1,24 @@
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Firebase Meetup</title>
-  <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/4.0.0/firebaseui.css" />
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Roboto:300,400,700&display=swap"
-    rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link
+    type="text/css"
+    rel="stylesheet"
+    href="https://cdn.firebase.com/libs/firebaseui/4.0.0/firebaseui.css"
+  />
+  <link
+    href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Roboto:300,400,700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://fonts.googleapis.com/icon?family=Material+Icons"
+    rel="stylesheet"
+  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 </head>
 
 <body>
   <div id="app">
-
     <section id="header">
       <h1 id="app-title">TotzTracker</h1>
 
@@ -24,27 +32,20 @@
       </button>
 
       <!-- Current Baby -->
-      <div id="current-baby-container">
-      </div>
+      <div id="current-baby-container"></div>
       <!--#current-baby-container-->
     </section>
     <!--#header-->
 
     <div id="main">
-      <section id="date-and-location">
-        <p><i class="material-icons">calendar_today</i> March 17</p>
-        <p><i class="material-icons">location_city</i> Atlanta</p>
-      </section>
-      <!--#event-details-container-->
-
-      <hr>
-
       <section id="firebaseui-auth-container"></section>
 
       <section id="logged-in-content">
         <section id="add-baby-container">
           <div id="new-user-baby-container">
-            <p>It looks like you don't have any totz. Add one to get started.</p>
+            <p>
+              It looks like you don't have any totz. Add one to get started.
+            </p>
           </div>
           <!--#new-user-baby-container-->
 
@@ -52,33 +53,147 @@
 
           <form id="add-baby">
             <label>First Name: </label>
-            <input type="text" id="first_name">
-            <br/>
+            <input type="text" id="first_name" />
+            <br />
 
             <label>Last Name: </label>
-            <input type="text" id="last_name">
-            <br/>
+            <input type="text" id="last_name" />
+            <br />
 
             <label>Birth Date: </label>
-            <input type="text" id="birth_date">
-            <br/>
+            <input type="text" id="birth_date" />
+            <br />
 
             <label>Gender: </label>
             <span>Boy</span>
-            <input type="radio" name="gender" value="1" checked="true">
+            <input type="radio" name="gender" value="1" checked="true" />
             <span> Girl</span>
-            <input type="radio" name="gender" value="0">
-            <br/>
+            <input type="radio" name="gender" value="0" />
+            <br />
 
             <button type="submit">
               <i class="material-icons">save</i>
               <span>Save</span>
             </button>
           </form>
+
+          <hr />
         </section>
         <!--#add-baby-container -->
 
         <section id="current-activity-container">
+          <table id="current-activity-table">
+            <tr id="row-start">
+              <td colspan="6">
+                <button class="activity-button" id="button-start">
+                  <i class="material-icons">add_circle</i>
+                </button>
+              </td>
+            </tr>
+            <tr id="row-activities">
+              <td>
+                <button class="activity-button" id="button-left">
+                  L
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-right">
+                  R
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-bottle">
+                  <i class="material-icons">room_service</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-sleep">
+                  <i class="material-icons">crib</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-diaper">
+                  <i class="material-icons">baby_changing_station</i>
+                </button>
+              </td>
+              <td colspan="1">
+                <button class="activity-button" id="button-cancel-choice">
+                  <i class="material-icons">cancel</i>
+                </button>
+              </td>
+            </tr>
+            <tr id="row-ongoing">
+              <td>
+                <button class="activity-button" id="button-pause">
+                  <i class="material-icons">pause_circle</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-swap-active">
+                  <i class="material-icons">swap_horizontal_circle</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-stop-active">
+                  <i class="material-icons">stop_circle</i>
+                </button>
+              </td>
+              <td colspan="3">
+                <button class="activity-button" id="button-cancel-active">
+                  <i class="material-icons">cancel</i>
+                </button>
+              </td>
+            </tr>
+            <tr id="row-resume">
+              <td>
+                <button class="activity-button" id="button-resume">
+                  <i class="material-icons">play_circle_filled</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-swap-paused">
+                  <i class="material-icons">swap_horizontal_circle</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-stop-paused">
+                  <i class="material-icons">stop_circle</i>
+                </button>
+              </td>
+              <td colspan="3">
+                <button class="activity-button" id="button-cancel-paused">
+                  <i class="material-icons">cancel</i>
+                </button>
+              </td>
+            </tr>
+            <tr id="row-diaper">
+              <td>
+                <button class="activity-button" id="button-wet">
+                  <i class="material-icons">opacity</i>
+                </button>
+              </td>
+              <td>
+                <button class="activity-button" id="button-dirty">
+                  <i class="material-icons">warning</i>
+                </button>
+              </td>
+              <td colspan="4">
+                <button class="activity-button" id="button-cancel-diaper">
+                  <i class="material-icons">cancel</i>
+                </button>
+              </td>
+            </tr>
+            <tr id="row-timer">
+              <td colspan="2">
+                <span id="timer-min" class="timer-value">00</span>
+                :
+                <span id="timer-sec" class="timer-value">00</span>
+              </td>
+              <td colspan="4">
+                <span id="activity-text"></span>
+              </td>
+            </tr>
+          </table>
         </section>
 
         <section id="recent-activity-container">

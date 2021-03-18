@@ -137,7 +137,7 @@ button.firebaseui-id-submit.mdl-button--raised.mdl-button--colored {
   display: block;
   height: 64px;
   z-index: 1000;
-  padding: 0 24px 0 24px;
+  padding: 12px 24px 0 24px;
   margin: 0;
 }
 
@@ -148,7 +148,7 @@ button.firebaseui-id-submit.mdl-button--raised.mdl-button--colored {
   font-size: 20px;
   font-weight: 400;
   margin: 0;
-  padding: 9px 0;
+  padding: 6px 0;
   float: left;
   height: 36px;
 }
@@ -184,6 +184,26 @@ button.firebaseui-id-submit.mdl-button--raised.mdl-button--colored {
   padding: 8px 0 0 0;
   width: 900px;
   display: block;
+}
+
+#current-activity-container .activity-button {
+  height: 36px;
+  width: 36px;
+  border-radius: 18px;
+  margin: 6px;
+}
+
+#current-activity-container .activity-button i {
+  padding: 0;
+  width: auto;
+}
+
+#current-activity-table td .timer-value {
+  font-size: 20px;
+}
+
+#current-activity-table td {
+  font-size: 16px;
 }
 
 /* Import datepickers css file. */
