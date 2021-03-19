@@ -23,6 +23,30 @@ const activeDeed = {
   CHOOSE_ACTIVITY: 999
 };
 
+// Models
+var totzUserModel = {
+  userId: "",
+  email: ""
+};
+
+var babyModel = {
+  firstName: "",
+  lastName: "",
+  birthDate: new Date(),
+  gender: 0,
+  createdByUserId: "",
+  createDate: Date.now(),
+  altCaretakerUserIds: []
+};
+
+//var nurseModel = {};
+
+//var bottleModel = {};
+
+//var sleepModel = {};
+
+//var diaperModel = {};
+
 // Deed Management
 var currentDeed = activeDeed.NONE;
 var isCurreentDeedPaused = false;
@@ -152,6 +176,7 @@ async function main() {
   firebase.auth().onAuthStateChanged(user => {
     if (user) {
       loginButton.textContent = "LOGOUT";
+      //getOrCreateTotzUser();
       // Show logged-in content to logged-in users
       show(loggedInContent);
       initUI();
@@ -290,6 +315,32 @@ async function main() {
 }
 main();
 
+function getOrCreateTotzUser() {
+  const totzUserRef = firebase.firestore().collection("totzUser");
+
+  totzUserRef
+    .where("userId", "==", firebase.auth().currentUser.uid)
+    .get()
+    .then(querySnapshot => {
+      if (querySnapshot.length > 0) {
+        querySnapshot.forEach(doc => {
+          // doc.data() is never undefined for query doc snapshots
+          console.log(doc.id, " => ", doc.data());
+        });
+      } else {
+        console.log("No such document! Adding TotzUser");
+        totzUserModel.userId = firebase.auth().currentUser.uid;
+        totzUserModel.email = firebase.auth().currentUser.email;
+        var docRef = totzUserRef.add(totzUserModel).then(docRef => {
+          console.log("Document written with ID: ", docRef.id);
+        });
+      }
+    })
+    .catch(error => {
+      console.log("Error getting document:", error);
+    });
+}
+
 function initUI() {
   // Hide some elements from the start. Determine when to show them later.
   addBabyButton.style.display = "none";
@@ -338,7 +389,7 @@ function initUI() {
           gender: babyGenderValue,
           createdByUserId: firebase.auth().currentUser.uid,
           createDate: Date.now(),
-          caretakerUserIds: []
+          altCaretakerUserIds: []
         });
     }
 
