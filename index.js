@@ -13,14 +13,26 @@ import * as firebaseui from "firebaseui";
 import datepicker from "js-datepicker";
 
 // Enums
-const activeDeed = {
+const eActiveDeed = {
   NONE: 0,
   NURSE_LEFT: 1,
   NURSE_RIGHT: 2,
   BOTTLE: 3,
   SLEEP: 4,
   DIAPER: 5,
+  DIAPER_WET: 6,
+  DIAPER_DIRTY: 7,
   CHOOSE_ACTIVITY: 999
+};
+
+const eNurseSide = {
+  LEFT: 0,
+  RIGHT: 1
+};
+
+const eDiaperType = {
+  WET: 0,
+  DIRTY: 1
 };
 
 // Models
@@ -36,27 +48,64 @@ var babyModel = {
   gender: 0,
   createdByUserId: "",
   createDate: Date.now(),
-  altCaretakerUserIds: []
+  altCaretakerUserIds: [],
+  nurse: [],
+  bottle: [],
+  sleep: [],
+  diaper: []
 };
 
-//var nurseModel = {};
+var nurseModel = {
+  createdByUserId: "",
+  startDate: 0,
+  durationLeft: 0,
+  durationRight: 0,
+  startSide: eNurseSide.LEFT,
+  endSide: eNurseSide.RIGHT,
+  isComplete: false,
+  comments: ""
+};
 
-//var bottleModel = {};
+var bottleModel = {
+  createdByUserId: "",
+  startDate: 0,
+  duration: 0,
+  amountInOunces: 0,
+  isComplete: false,
+  comments: ""
+};
 
-//var sleepModel = {};
+var sleepModel = {
+  createdByUserId: "",
+  startDate: 0,
+  duration: 0,
+  isComplete: false,
+  comments: ""
+};
 
-//var diaperModel = {};
+var diaperModel = {
+  createdByUserId: "",
+  startDate: 0,
+  diaperType: eDiaperType.WET,
+  comments: ""
+};
 
 // Deed Management
-var currentDeed = activeDeed.NONE;
+var currentDeed = eActiveDeed.NONE;
 var isCurreentDeedPaused = false;
 
 // Timer
 const TIMER_DELAY = 1000;
-var isTimerRunning = false;
-var timerStart = 0;
-var timerPause = 0;
-var timerBuff = 0;
+var isTimerRunningLeft = false;
+var timerStartLeft = 0;
+var timerPauseLeft = 0;
+var timerBuffLeft = 0;
+var timeElapsedInSecondsLeft = 0;
+var isTimerRunningRight = false;
+var timerStartRight = 0;
+var timerPauseRight = 0;
+var timerBuffRight = 0;
+var timeElapsedInSecondsRight = 0;
 
 // Header
 const loginButton = document.getElementById("btnLogin");
@@ -126,6 +175,7 @@ const recentActivityContainer = document.getElementById(
 
 // Current App State
 var currentBaby = null;
+var currentBabyId = "";
 
 async function main() {
   // Add Firebase project configuration object here
@@ -190,125 +240,137 @@ async function main() {
 
   // Activity Button Actions
   btnStart.addEventListener("click", () => {
-    currentDeed = activeDeed.CHOOSE_ACTIVITY;
+    currentDeed = eActiveDeed.CHOOSE_ACTIVITY;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnLeft.addEventListener("click", () => {
-    runTimer(true);
-    currentDeed = activeDeed.NURSE_LEFT;
+    runTimerLeft(true);
+    currentDeed = eActiveDeed.NURSE_LEFT;
     isCurreentDeedPaused = false;
+    handleStartDeed();
     updateCurrentActivity();
   });
 
   btnRight.addEventListener("click", () => {
-    runTimer(true);
-    currentDeed = activeDeed.NURSE_RIGHT;
+    runTimerLeft(true);
+    currentDeed = eActiveDeed.NURSE_RIGHT;
     isCurreentDeedPaused = false;
+    handleStartDeed();
     updateCurrentActivity();
   });
 
   btnBottle.addEventListener("click", () => {
-    runTimer(true);
-    currentDeed = activeDeed.BOTTLE;
+    runTimerLeft(true);
+    currentDeed = eActiveDeed.BOTTLE;
     isCurreentDeedPaused = false;
+    handleStartDeed();
     updateCurrentActivity();
   });
 
   btnSleep.addEventListener("click", () => {
-    runTimer(true);
-    currentDeed = activeDeed.SLEEP;
+    runTimerLeft(true);
+    currentDeed = eActiveDeed.SLEEP;
     isCurreentDeedPaused = false;
+    handleStartDeed();
     updateCurrentActivity();
   });
 
   btnDiaper.addEventListener("click", () => {
-    currentDeed = activeDeed.DIAPER;
+    currentDeed = eActiveDeed.DIAPER;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnCancelChoice.addEventListener("click", () => {
-    currentDeed = activeDeed.NONE;
+    currentDeed = eActiveDeed.NONE;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnPause.addEventListener("click", () => {
-    pauseTimer();
+    pauseTimerLeft();
     isCurreentDeedPaused = true;
     updateCurrentActivity();
   });
 
   btnSwapActive.addEventListener("click", () => {
-    if (currentDeed == activeDeed.NURSE_LEFT) {
-      currentDeed = activeDeed.NURSE_RIGHT;
+    if (currentDeed == eActiveDeed.NURSE_LEFT) {
+      currentDeed = eActiveDeed.NURSE_RIGHT;
     } else {
-      currentDeed = activeDeed.NURSE_LEFT;
+      currentDeed = eActiveDeed.NURSE_LEFT;
     }
     updateCurrentActivity();
   });
 
   btnStopActive.addEventListener("click", () => {
-    resetTimer();
-    currentDeed = activeDeed.NONE;
+    handleStopDeed();
+    resetTimerLeft();
+    currentDeed = eActiveDeed.NONE;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnCancelActive.addEventListener("click", () => {
-    resetTimer();
-    currentDeed = activeDeed.CHOOSE_ACTIVITY;
+    handleCancelDeed();
+    resetTimerLeft();
+    currentDeed = eActiveDeed.CHOOSE_ACTIVITY;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnResume.addEventListener("click", () => {
-    runTimer(true);
+    runTimerLeft(true);
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnSwapPaused.addEventListener("click", () => {
-    runTimer(true);
-    if (currentDeed == activeDeed.NURSE_LEFT) {
-      currentDeed = activeDeed.NURSE_RIGHT;
+    runTimerLeft(true);
+    if (currentDeed == eActiveDeed.NURSE_LEFT) {
+      currentDeed = eActiveDeed.NURSE_RIGHT;
     } else {
-      currentDeed = activeDeed.NURSE_LEFT;
+      currentDeed = eActiveDeed.NURSE_LEFT;
     }
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnStopPaused.addEventListener("click", () => {
-    resetTimer();
-    currentDeed = activeDeed.NONE;
+    handleStopDeed();
+    resetTimerLeft();
+    currentDeed = eActiveDeed.NONE;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnCancelPaused.addEventListener("click", () => {
-    resetTimer();
-    currentDeed = activeDeed.CHOOSE_ACTIVITY;
+    handleCancelDeed();
+    resetTimerLeft();
+    currentDeed = eActiveDeed.CHOOSE_ACTIVITY;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnWet.addEventListener("click", () => {
-    currentDeed = activeDeed.NONE;
+    currentDeed = eActiveDeed.DIAPER_WET;
+    handleStartDeed();
+    currentDeed = eActiveDeed.NONE;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnDirty.addEventListener("click", () => {
-    currentDeed = activeDeed.NONE;
+    currentDeed = eActiveDeed.DIAPER_DIRTY;
+    handleStartDeed();
+    currentDeed = eActiveDeed.NONE;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
 
   btnCancelDiaper.addEventListener("click", () => {
-    currentDeed = activeDeed.NONE;
+    currentDeed = eActiveDeed.NONE;
     isCurreentDeedPaused = false;
     updateCurrentActivity();
   });
@@ -328,12 +390,9 @@ function getOrCreateTotzUser() {
           console.log(doc.id, " => ", doc.data());
         });
       } else {
-        console.log("No such document! Adding TotzUser");
         totzUserModel.userId = firebase.auth().currentUser.uid;
         totzUserModel.email = firebase.auth().currentUser.email;
-        var docRef = totzUserRef.add(totzUserModel).then(docRef => {
-          console.log("Document written with ID: ", docRef.id);
-        });
+        var docRef = totzUserRef.add(totzUserModel).then(docRef => {});
       }
     })
     .catch(error => {
@@ -348,14 +407,12 @@ function initUI() {
   newUserBabyContainer.style.display = "none";
   recentActivityContainer.style.display = "none";
 
-  updateCurrentActivity(activeDeed.NONE);
+  updateCurrentActivity(eActiveDeed.NONE);
 
   // Listen to the form submission
   form.addEventListener("submit", e => {
     // Prevent the default form redirect
     e.preventDefault();
-
-    console.log("saving baby");
 
     // Write a new object to the database collection "baby"
     var babyGenderRadios = document.getElementsByName("gender");
@@ -418,20 +475,25 @@ function initUI() {
         // Set active baby
         console.log("1 baby");
         result.forEach(docSnapshot => {
-          setBaby(docSnapshot.data());
+          console.log("Baby Id " + docSnapshot.id);
+          console.log(docSnapshot.data());
+          setBaby(docSnapshot.id, docSnapshot.data());
         });
       } else {
         // Allow user to select active baby
         console.log(babyCount + " babies");
         result.forEach(docSnapshot => {
+          console.log("Baby Id " + docSnapshot.id);
           console.log(docSnapshot.data());
         });
         addBabyButton.style.display = "block";
       }
     });
+
+    subscribeToNurses();
   } else {
     // Hide elements if user is logged out
-    setBaby(null);
+    setBaby("", null);
   }
 }
 
@@ -457,12 +519,12 @@ async function getBabiesCreatedByOrCaretaker() {
   const caretakerArray = caretakerQuerySnapshot.docs;
 
   const babyArray = createdByArray.concat(caretakerArray);
-  console.log("getBabiesCreatedByOrCaretaker() baby array " + babyArray.length);
   return babyArray;
 }
 
-function setBaby(baby) {
-  if (baby) {
+function setBaby(id, baby) {
+  if (id && baby) {
+    currentBabyId = id;
     currentBaby = baby;
     recentActivityContainer.style.display = "block";
     addBabyButton.style.display = "block";
@@ -475,11 +537,8 @@ function setBaby(baby) {
 }
 
 function updateCurrentActivity() {
-  console.log(
-    "updateCurrentActivity() " + currentDeed + " " + isCurreentDeedPaused
-  );
   switch (currentDeed) {
-    case activeDeed.NONE:
+    case eActiveDeed.NONE:
       show(rowStart);
       hide(rowActivities);
       hide(rowOngoing);
@@ -491,7 +550,7 @@ function updateCurrentActivity() {
       spanMin.innerHTML = "00";
       spanSec.innerHTML = "00";
       break;
-    case activeDeed.NURSE_LEFT:
+    case eActiveDeed.NURSE_LEFT:
       hide(rowStart);
       hide(rowActivities);
       if (isCurreentDeedPaused) {
@@ -505,7 +564,7 @@ function updateCurrentActivity() {
       show(rowTimer);
       spanActivityText.innerHTML = "Active Nurse (Left)";
       break;
-    case activeDeed.NURSE_RIGHT:
+    case eActiveDeed.NURSE_RIGHT:
       hide(rowStart);
       hide(rowActivities);
       if (isCurreentDeedPaused) {
@@ -519,7 +578,7 @@ function updateCurrentActivity() {
       show(rowTimer);
       spanActivityText.innerHTML = "Active Nurse (Right)";
       break;
-    case activeDeed.BOTTLE:
+    case eActiveDeed.BOTTLE:
       hide(rowStart);
       hide(rowActivities);
       if (isCurreentDeedPaused) {
@@ -533,7 +592,7 @@ function updateCurrentActivity() {
       show(rowTimer);
       spanActivityText.innerHTML = "Active Bottle";
       break;
-    case activeDeed.SLEEP:
+    case eActiveDeed.SLEEP:
       hide(rowStart);
       hide(rowActivities);
       if (isCurreentDeedPaused) {
@@ -547,7 +606,7 @@ function updateCurrentActivity() {
       show(rowTimer);
       spanActivityText.innerHTML = "Active Sleep";
       break;
-    case activeDeed.DIAPER:
+    case eActiveDeed.DIAPER:
       hide(rowStart);
       hide(rowActivities);
       hide(rowOngoing);
@@ -555,7 +614,7 @@ function updateCurrentActivity() {
       show(rowDiaper);
       show(rowTimer);
       break;
-    case activeDeed.CHOOSE_ACTIVITY:
+    case eActiveDeed.CHOOSE_ACTIVITY:
       hide(rowStart);
       show(rowActivities);
       hide(rowOngoing);
@@ -570,7 +629,7 @@ function updateCurrentActivity() {
 
   // Special Cases: btnSwapActive and btnSwapPaused
   // Hide for Sleep and Bottle
-  if (currentDeed == activeDeed.SLEEP || currentDeed == activeDeed.BOTTLE) {
+  if (currentDeed == eActiveDeed.SLEEP || currentDeed == eActiveDeed.BOTTLE) {
     hide(btnSwapActive);
     hide(btnSwapPaused);
   } else {
@@ -589,30 +648,32 @@ function hide(element) {
 }
 
 // Timer
-function runTimer(isButtonClick) {
+function runTimerLeft(isButtonClick) {
   var now = Date.now();
 
-  if (!isTimerRunning) {
+  if (!isTimerRunningLeft) {
     if (isButtonClick) {
       // User triggered start/resume
-      if (timerStart == 0) {
-        timerStart = now;
+      if (timerStartLeft == 0) {
+        timerStartLeft = now;
       }
 
-      if (timerPause > 0) {
-        timerBuff += now - timerPause;
-        timerPause = 0;
+      if (timerPauseLeft > 0) {
+        timerBuffLeft += now - timerPauseLeft;
+        timerPauseLeft = 0;
       }
 
-      isTimerRunning = true;
+      isTimerRunningLeft = true;
     } else {
       // setTimeout callback, do nothing
     }
   }
 
-  var timeElapsedInSeconds = (now - timerStart - timerBuff) / 1000;
-  var min = Math.floor(timeElapsedInSeconds / 60);
-  var sec = Math.floor(timeElapsedInSeconds % 60);
+  timeElapsedInSecondsLeft = (now - timerStartLeft - timerBuffLeft) / 1000;
+  var timeElapsedTotal = timeElapsedInSecondsLeft + timeElapsedInSecondsRight;
+
+  var min = Math.floor(timeElapsedTotal / 60);
+  var sec = Math.floor(timeElapsedTotal % 60);
 
   sec++;
   if (sec == 60) {
@@ -623,42 +684,199 @@ function runTimer(isButtonClick) {
   var minString = min < 10 ? "0" + min.toString() : min.toString();
   var secString = sec < 10 ? "0" + sec.toString() : sec.toString();
 
-  console.log(
-    "runTimer(isButtonClick) " +
-      isButtonClick +
-      ", start " +
-      timerStart +
-      ", pause " +
-      timerPause +
-      ", buff " +
-      timerBuff +
-      ", timeElepsedInSeconds " +
-      timeElapsedInSeconds
-  );
-
-  if (isTimerRunning) {
+  if (isTimerRunningLeft) {
     spanMin.innerHTML = minString;
     spanSec.innerHTML = secString;
 
     setTimeout(function() {
-      runTimer(false);
+      runTimerLeft(false);
     }, TIMER_DELAY);
   }
 }
 
-function pauseTimer() {
-  timerPause = Date.now();
-  isTimerRunning = false;
+function pauseTimerLeft() {
+  timerPauseLeft = Date.now();
+  isTimerRunningLeft = false;
   console.log(
-    "pauseTimer() " + timerPause + " isTimerRunning " + isTimerRunning
+    "pauseTimerLeft() " +
+      timerPauseLeft +
+      " isTimerRunningLeft " +
+      isTimerRunningLeft
   );
 }
 
-function resetTimer() {
-  isTimerRunning = false;
-  timerStart = 0;
-  timerPause = 0;
-  timerBuff = 0;
+function resetTimerLeft() {
+  isTimerRunningLeft = false;
+  timerStartLeft = 0;
+  timerPauseLeft = 0;
+  timerBuffLeft = 0;
+  timeElapsedInSecondsLeft = 0;
 
-  console.log("resetTimer()");
+  console.log("resetTimerLeft()");
+}
+
+function runTimerRight(isButtonClick) {
+  var now = Date.now();
+
+  if (!isTimerRunningRight) {
+    if (isButtonClick) {
+      // User triggered start/resume
+      if (timerStartRight == 0) {
+        timerStartRight = now;
+      }
+
+      if (timerPauseRight > 0) {
+        timerBuffRight += now - timerPauseRight;
+        timerPauseRight = 0;
+      }
+
+      isTimerRunningRight = true;
+    } else {
+      // setTimeout callback, do nothing
+    }
+  }
+
+  timeElapsedInSecondsRight = (now - timerStartRight - timerBuffRight) / 1000;
+  var timeElapsedTotal = timeElapsedInSecondsLeft + timeElapsedInSecondsRight;
+
+  var min = Math.floor(timeElapsedTotal / 60);
+  var sec = Math.floor(timeElapsedTotal % 60);
+
+  sec++;
+  if (sec == 60) {
+    min++;
+    sec = 0;
+  }
+
+  var minString = min < 10 ? "0" + min.toString() : min.toString();
+  var secString = sec < 10 ? "0" + sec.toString() : sec.toString();
+
+  if (isTimerRunningRight) {
+    spanMin.innerHTML = minString;
+    spanSec.innerHTML = secString;
+
+    setTimeout(function() {
+      runTimerRight(false);
+    }, TIMER_DELAY);
+  }
+}
+
+function pauseTimerRight() {
+  timerPauseRight = Date.now();
+  isTimerRunningRight = false;
+  console.log(
+    "pauseTimerRight() " +
+      timerPauseRight +
+      " isTimerRunningRight " +
+      isTimerRunningRight
+  );
+}
+
+function resetTimerRight() {
+  isTimerRunningRight = false;
+  timerStartRight = 0;
+  timerPauseRight = 0;
+  timerBuffRight = 0;
+  timeElapsedInSecondsRight = 0;
+
+  console.log("resetTimerRight()");
+}
+
+// Handle Actions For Deeds
+function handleStartDeed() {}
+
+function handleStopDeed() {
+  switch (currentDeed) {
+    case eActiveDeed.NURSE_LEFT:
+    case eActiveDeed.NURSE_RIGHT:
+      console.log("Handle stop deed. Save nurse.");
+      addNurse();
+      break;
+    case eActiveDeed.BOTTLE:
+      console.log("Handle stop deed. Save bottle.");
+      break;
+    case eActiveDeed.SLEEP:
+      console.log("Handle stop deed. Save sleep.");
+      break;
+    default:
+      console.log("Handle stop deed. Nothing to save.");
+      break;
+  }
+}
+
+function handleCancelDeed() {}
+
+// Save Deeds
+function addNurse() {
+  var nurseStartDate = 0;
+  var nurseStartSide = eNurseSide.LEFT;
+
+  if (timerStartRight == 0) {
+    nurseStartDate = timerStartLeft;
+  } else if (timerStartLeft == 0) {
+    nurseStartDate = timerStartRight;
+    nurseStartSide = eNurseSide.RIGHT;
+  } else {
+    nurseStartDate =
+      timerStartLeft < timerStartRight ? timerStartLeft : timerStartRight;
+    nurseStartSide =
+      timerStartLeft < timerStartRight ? eNurseSide.LEFT : eNurseSide.RIGHT;
+  }
+
+  nurseModel.createdByUserId = firebase.auth().currentUser.uid;
+  nurseModel.startDate = nurseStartDate;
+  nurseModel.durationLeft = timeElapsedInSecondsLeft;
+  nurseModel.durationRight = timeElapsedInSecondsRight;
+  nurseModel.startSide = nurseStartSide;
+  nurseModel.endSide =
+    currentDeed == eActiveDeed.NURSE_LEFT ? eNurseSide.LEFT : eNurseSide.RIGHT;
+  nurseModel.isComplete = true;
+  //nurseModel.comments = textNurseComments.value; //TODO: Add comments text field and retrieve babyGenderValue
+
+  const babyRef = firebase
+    .firestore()
+    .collection("baby")
+    .doc(currentBabyId);
+  if (babyRef) {
+    babyRef
+      .collection("nurse")
+      .add(nurseModel)
+      .then(nurseRef => {
+        console.log("Nurse added to baby written with ID: ", nurseRef.id);
+      })
+      .catch(error => {
+        console.error("Error adding nurse to baby: ", error);
+      });
+  }
+}
+
+function addBottle() {}
+
+function addSleep() {}
+
+function addDiaper() {}
+
+// Subscribe/Unsubscribe
+
+var unsubscribe;
+
+function subscribeToNurses() {
+  unsubscribe = firebase
+    .firestore()
+    .collection("baby")
+    .where("createdByUserId", "==", firebase.auth().currentUser.uid)
+    .get()
+    .onSnapshot(querySnapshot => {
+      console.log("Nurse for baby " + currentBabyId);
+      querySnapshot.forEach(doc => {
+        var nurseList = doc.collection("nurse").get();
+        nurseList.forEach(nurse => {
+          console.log(doc.data());
+        });
+      });
+    });
+}
+
+function unsubscribeFromNurses() {
+  unsubscribe();
 }
